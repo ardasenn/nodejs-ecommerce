@@ -62,3 +62,7 @@ Here are some key points about my project:
 - ACCES_TOKEN_SECRET="your secret"
 - REFRESH_TOKEN_SECRET="your secret"
 - API_URL=/api/v1
+
+##### You can check these screenshots to see all endpoints
+
+![Picture 1](https://cdn.discordapp.com/attachments/868275280186314782/1175756306972418099/image.png?ex=656c6364&is=6559ee64&hm=6b625e8450315e440048a641c5953a9c642a2de407f62f4739e4d2c05d5a9c87&) ![Picture 2](https://cdn.discordapp.com/attachments/868275280186314782/1175756439151726672/image.png?ex=656c6383&is=6559ee83&hm=83311c4085e3e26d9911f83d945bf056d8d50454c9a9b8105289897aa090e54a&)
