@@ -19,7 +19,7 @@ const orderSchema = new Schema({
     type: String,
     default: "Pending",
   },
-  totalPrice: String,
+  totalPrice: Number,
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

@@ -23,12 +23,22 @@ const createOrder = async (data) => {
     data.orderItems.map(async (a) => {
       let orderItem = await OrderItem.create({
         quantity: a.quantity,
-        product: a.product,
+        order: a.product,
       });
       return orderItem.id;
     })
   );
 
+  const totalPrices = await Promise.all(
+    orderItemsIds.map(async (orderItemId) => {
+      const orderItem = await OrderItem.findById(orderItemId).populate(
+        "product",
+        "price"
+      );
+      const totalPrice = orderItem.product.price * orderItem.quantity;
+      return totalPrice;
+    })
+  );
   const result = await Order.create({
     orderItems: orderItemsIds,
     shippingAddress: data.email,
@@ -37,7 +47,7 @@ const createOrder = async (data) => {
     country: data.country,
     phone: data.phone,
     user: data.user,
-    totalPrice: data.totalPrice,
+    totalPrice: totalPrices.reduce((a, b) => a + b, 0),
   });
   return result;
 };
@@ -54,8 +64,65 @@ const orderDetail = async (id) => {
   if (!order) throw new Error("Order not found");
   return order;
 };
+const updateOrder = async (orderData) => {
+  const result = await Order.findByIdAndUpdate(
+    orderData.id,
+    {
+      status: orderData.status,
+    },
+    { new: true }
+  );
+
+  if (!result) {
+    throw new Error("The Order cannot be updated");
+  }
+
+  return result;
+};
+const deleteOrder = async (id) => {
+  const isValid = mongoose.isValidObjectId(id);
+  if (!isValid) throw new Error("Id is invalid");
+
+  const order = await Order.findByIdAndDelete(id);
+  if (!order) throw new Error("Order not found");
+  await Promise.all(
+    order.orderItems.map(async (orderItem) => {
+      await OrderItem.findByIdAndDelete(orderItem);
+    })
+  );
+  return order;
+};
+const getTotalSales = async () => {
+  const totalSales = await Order.aggregate([
+    {
+      $group: { _id: null, totalSales: { $sum: "$totalPrice" } },
+    },
+  ]);
+  if (!totalSales) throw new Error("Some things went wrong");
+  return totalSales;
+};
+const getCount = async () => {
+  const orderCount = await Order.countDocuments();
+  if (!orderCount) throw new Error("Some things went wrong");
+  return orderCount;
+};
+const getUserOrders = async (userId) => {
+  const orderList = await Order.find({ user: userId })
+    .populate({
+      path: "orderItems",
+      populate: { path: "product", populate: "category" },
+    })
+    .sort({ dateOrdered: -1 });
+  if (!orderList) throw new Error("Some things went wrong");
+  return orderList;
+};
 module.exports = {
   getAll,
   createOrder,
   orderDetail,
+  updateOrder,
+  deleteOrder,
+  getTotalSales,
+  getCount,
+  getUserOrders,
 };
